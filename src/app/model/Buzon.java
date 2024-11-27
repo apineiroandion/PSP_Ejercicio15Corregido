@@ -5,21 +5,32 @@ import java.util.Queue;
 
 public class Buzon {
     private Queue<Mensaje> mensajes = new LinkedList<>();
+    private final int MAX_MENSAJES = 1;
 
     public synchronized void addMensaje(Mensaje mensaje) {
-        if (mensajes.isEmpty()) {
-            mensajes.add(mensaje);
-            System.out.println("Mensaje agregado");
-        }else {
-            System.out.println("Buzon lleno");
+        while (mensajes.size() >= MAX_MENSAJES) {
+            try {
+                System.out.println("Buzon lleno, esperando a que se lea un mensaje");
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
+        mensajes.add(mensaje);
+        System.out.println("Mensaje añadido: " + mensaje.getMensaje());
+        notifyAll();
     }
 
     public synchronized void readMensaje() {
-        if (!mensajes.isEmpty()) {
-            System.out.println(mensajes.poll().getMensaje());
-        }else {
-            System.out.println("Buzon vacio");
+        while (mensajes.isEmpty()) {
+            try {
+                System.out.println("Buzon vacio, esperando a que se añada un mensaje");
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
+        System.out.println("Mensaje Leido: " + mensajes.poll().getMensaje());
+        notifyAll();
     }
 }
